@@ -13,6 +13,7 @@ model Movie {
   description String?
   releaseDate DateTime
   rating      Float?
+  directorName String?     
 }
 
 model User {
