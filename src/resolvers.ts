@@ -2,6 +2,7 @@ import { IResolvers } from '@graphql-tools/utils';
 import { PrismaClient, Prisma } from '@prisma/client';
 import { getUserId, generateToken, hashPassword, comparePassword } from './utils';
 import { validatePagination } from './validation';
+import { GraphQLError } from 'graphql';
 
 const prisma = new PrismaClient();
 
@@ -72,17 +73,32 @@ const resolvers: IResolvers = {
     login: async (_, { email, password }) => {
       const user = await prisma.user.findUnique({ where: { email } });
       if (!user) {
-        throw new Error('Invalid email or password');
+        throw new GraphQLError('User not found');
       }
 
       const passwordMatch = await comparePassword(password, user.password);
       if (!passwordMatch) {
-        throw new Error('Invalid email or password');
+        throw new GraphQLError('Invalid password');
       }
 
       const token = generateToken(user.id);
       return { token, user };
     },
+    changePassword: async (_, { currentPassword, newPassword }, { req }) => {
+      const userId = getUserId(req);
+      const user = await prisma.user.findUnique({ where: { id: userId } });
+      if (!user) {
+        throw new GraphQLError('User not found');
+      }
+
+      const passwordMatch = await comparePassword(currentPassword, user.password);
+      if (!passwordMatch) {
+        throw new GraphQLError('Invalid password');
+      }
+
+      const hashedPassword = await hashPassword(newPassword);
+      return prisma.user.update({ where: { id: userId }, data: { password: hashedPassword } });
+    }
   },
 };
 

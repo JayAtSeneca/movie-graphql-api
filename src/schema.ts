@@ -40,6 +40,7 @@ const typeDefs = gql`
     deleteMovie(id: Int!): Movie!
     signup(name: String!, email: String!, password: String!): AuthPayload!
     login(email: String!, password: String!): AuthPayload!
+    changePassword(currentPassword: String!, newPassword: String!): User!
   }
 
   enum MovieSortBy {
