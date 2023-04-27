@@ -1,13 +1,39 @@
 import { IResolvers } from '@graphql-tools/utils';
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient, Prisma } from '@prisma/client';
 import { getUserId, generateToken, hashPassword, comparePassword } from './utils';
+import { validatePagination } from './validation';
 
 const prisma = new PrismaClient();
 
 const resolvers: IResolvers = {
   Query: {
-    movies: async () => {
-      return prisma.movie.findMany();
+    movies: async (
+      _,
+      { search, sortBy, sortOrder, skip, take }
+    ) => {
+      validatePagination(skip, take);
+
+      const where: Prisma.MovieWhereInput = search
+        ? {
+            OR: [
+              { title: { contains: search, mode: 'insensitive' } },
+              { description: { contains: search, mode: 'insensitive' } },
+            ],
+          }
+        : {};
+
+      const orderBy = sortBy
+        ? {
+            [sortBy]: sortOrder || 'asc',
+          }
+        : undefined;
+
+      return prisma.movie.findMany({
+        where,
+        orderBy,
+        skip,
+        take,
+      });
     },
     movie: async (_, { id }) => {
       return prisma.movie.findUnique({ where: { id } });
@@ -18,10 +44,20 @@ const resolvers: IResolvers = {
     },
   },
   Mutation: {
-    createMovie: async (_, { title, description, releaseDate, rating }) => {
-      return prisma.movie.create({ data: { title, description, releaseDate, rating } });
+    createMovie: async (_, { title, description, releaseDate, rating, directorName }, context, info) => {
+      //console.log('createMovie', title, description, releaseDate, rating);
+      const newMovie = await context.prisma.movie.create({
+        data: {
+          title,
+          description,
+          releaseDate,
+          rating,
+          directorName
+        },
+      });
+      return newMovie;
     },
-    updateMovie: async (_, { id, title, description, releaseDate, rating }) => {
+    updateMovie: async (_, { id, title, description, releaseDate, rating, directorName }) => {
       return prisma.movie.update({ where: { id }, data: { title, description, releaseDate, rating } });
     },
     deleteMovie: async (_, { id }) => {
