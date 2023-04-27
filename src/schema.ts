@@ -22,7 +22,13 @@ const typeDefs = gql`
   }
 
   type Query {
-    movies: [Movie!]!
+    movies(
+      search: String
+      sortBy: MovieSortBy
+      sortOrder: SortOrder
+      skip: Int
+      take: Int
+    ): [Movie!]!
     movie(id: Int!): Movie
     me: User
   }
@@ -33,6 +39,18 @@ const typeDefs = gql`
     deleteMovie(id: Int!): Movie!
     signup(name: String!, email: String!, password: String!): AuthPayload!
     login(email: String!, password: String!): AuthPayload!
+  }
+
+  enum MovieSortBy {
+    id
+    title
+    releaseDate
+    rating
+  }
+
+  enum SortOrder {
+    ASC
+    DESC
   }
 `;
 
