@@ -7,6 +7,7 @@ const typeDefs = gql`
     description: String
     releaseDate: String
     rating: Float
+    directorName: String
   }
 
   type User {
