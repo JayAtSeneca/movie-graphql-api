@@ -35,7 +35,7 @@ const typeDefs = gql`
   }
 
   type Mutation {
-    createMovie(title: String!, description: String, releaseDate: String, rating: Float): Movie!
+    createMovie(title: String!, description: String, releaseDate: String, rating: Float, directorName: String): Movie!
     updateMovie(id: Int!, title: String, description: String, releaseDate: String, rating: Float): Movie!
     deleteMovie(id: Int!): Movie!
     signup(name: String!, email: String!, password: String!): AuthPayload!
